@@ -1,5 +1,5 @@
 ## log Optimal porfolio weight calculator
 
-D. Luenberger, 1998 , _Investment Science_
+D. Luenberger, 1998, _Investment Science_
 
-Rroof of concept with havelock.
+Proof of concept with havelock.
