@@ -1,0 +1,140 @@
+#  djpeg test.jpg | pnmscale -xysize 80 60 | cjpeg -opti -progr -qual '75' >x.jpg
+apt-get install libjpeg-progs
+apt-get install netpbm
+apt-get install gifsicle
+# fix php.ini upload_tmp_dir = /tmp
+# fix light conf 
+# server.upload-dirs          = ( "/tmp" )
+# chown -R www-data:www-data mk3/photos
+# chmod 0777 mk3/photos
+# rsync -avzh --stats --delete photos/ 10.8.0.54::photos
+mkdir -p /opt/mimo/data/photos
+rsync -avzh --stats --delete photos/ 10.8.0.54::photos
+wget https://nodeload.github.com/valums/file-uploader/zipball/master
+#  rsyncd.conf configuration file
+
+# GLOBAL OPTIONS
+
+#motd file=/etc/motd
+#log file=/var/log/rsyncd
+# for pid file, do not use /var/run/rsync.pid if
+# you are going to run rsync out of the init.d script.
+# pid file=/var/run/rsyncd.pid
+#syslog facility=daemon
+#socket options=
+
+# MODULE OPTIONS
+
+[all]
+
+	comment = unsecured easy access to the dp uSD
+	path = /
+	use chroot = no
+	numeric ids = yes
+	munge symlinks = no
+	max connections=5
+	lock file = /var/lock/rsyncd
+# the default for read only is yes...
+#	read only = yes
+	read only = no
+	list = no
+#	uid = nobody
+#	gid = nogroup
+	uid = root
+	gid = root
+#	exclude = 
+#	exclude from = 
+#	include =
+#	include from =
+#	auth users = 
+#	secrets file = /etc/rsyncd.secrets
+	strict modes = yes
+	hosts allow = 192.168.0.0/24 10.8.0.0/24
+#	hosts deny =
+	ignore errors = no
+	ignore nonreadable = yes
+	transfer logging = no
+#	log format = %t: host %h (%a) %o %f (%l bytes). Total %b bytes.
+	timeout = 600
+#	refuse options = checksum dry-run
+	refuse options = delete
+	dont compress = *.gz *.tgz *.zip *.z *.rpm *.deb *.iso *.bz2 *.tbz *.xz
+
+
+[photos]
+	comment = photos folder for the mimo
+#	path = /opt/mimo/data/photos
+	path = /var/www/mk3/./photos
+	use chroot = no
+	numeric ids = yes
+	munge symlinks = no
+	max connections=5
+	lock file = /var/lock/rsyncd
+# the default for read only is yes...
+#	read only = yes
+	read only = no
+	list = yes
+#	uid = nobody
+#	gid = nogroup
+	uid = root
+	gid = root
+#	exclude = 
+#	exclude from = 
+#	include =
+#	include from =
+#	auth users = 
+#	secrets file = /etc/rsyncd.secrets
+	strict modes = yes
+	hosts allow = 192.168.0.0/24 10.8.0.0/24
+#	hosts deny =
+	ignore errors = no
+	ignore nonreadable = yes
+	transfer logging = no
+#	log format = %t: host %h (%a) %o %f (%l bytes). Total %b bytes.
+	timeout = 600
+#	refuse options = checksum dry-run
+#	refuse options = delete
+	dont compress = *.gz *.tgz *.zip *.z *.rpm *.deb *.iso *.bz2 *.tbz *.xz
+
+
+# defaults file for rsync daemon mode
+
+# start rsync in daemon mode from init.d script?
+#  only allowed values are "true", "false", and "inetd"
+#  Use "inetd" if you want to start the rsyncd from inetd,
+#  all this does is prevent the init.d script from printing a message
+#  about not starting rsyncd (you still need to modify inetd's config yourself).
+RSYNC_ENABLE=true
+
+# which file should be used as the configuration file for rsync.
+# This file is used instead of the default /etc/rsyncd.conf
+# Warning: This option has no effect if the daemon is accessed
+#          using a remote shell. When using a different file for
+#          rsync you might want to symlink /etc/rsyncd.conf to
+#          that file.
+# RSYNC_CONFIG_FILE=
+
+# what extra options to give rsync --daemon?
+#  that excludes the --daemon; that's always done in the init.d script
+#  Possibilities are:
+#   --address=123.45.67.89		(bind to a specific IP address)
+#   --port=8730				(bind to specified port; default 873)
+RSYNC_OPTS=''
+
+# run rsyncd at a nice level?
+#  the rsync daemon can impact performance due to much I/O and CPU usage,
+#  so you may want to run it at a nicer priority than the default priority.
+#  Allowed values are 0 - 19 inclusive; 10 is a reasonable value.
+RSYNC_NICE=''
+
+# run rsyncd with ionice?
+#  "ionice" does for IO load what "nice" does for CPU load.
+#  As rsync is often used for backups which aren't all that time-critical,
+#  reducing the rsync IO priority will benefit the rest of the system.
+#  See the manpage for ionice for allowed options.
+#  -c3 is recommended, this will run rsync IO at "idle" priority. Uncomment
+#  the next line to activate this.
+RSYNC_IONICE='-c3'
+
+# Don't forget to create an appropriate config file,
+# else the daemon will not start.

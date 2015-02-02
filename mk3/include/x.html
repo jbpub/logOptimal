@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en">
+<head>
+<link href="style.css" type="text/css" rel="stylesheet" />
+<noscript>
+	<zzMETA HTTP-EQUIV=Refresh CONTENT="0; URL=noscript.html">
+</noscript>
+
+<!--
+<link href="assets/jqueryui.css" type="text/css" rel="stylesheet" />
+<link href="assets/jquery.sb.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="scripts/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="scripts/jquery.sb.min.js"></script>
+<script type="text/javascript" src="scripts/script.js"></script>
+-->
+
+<SCRIPT type="text/javascript">
+function flashexists() {
+  if (navigator.plugins && navigator.plugins.length) {
+    for (n = 0; n < navigator.plugins.length; n++) {
+      if (navigator.plugins[n].name.indexOf('Shockwave Flash') != -1) {
+          return true;
+      }
+    }
+  }
+  return false;
+}
+function rootpath() {return window.location.pathname.replace(/\/[^\/]+$/,'\/');}
+function rooturi() { return window.location.href.replace(/\/[^\/]+$/,'\/');}
+if (!flashexists()) {
+//	window.location.href = rooturi() + 'noflash.html';
+}
+</SCRIPT>
+<title>My Mimo</title>
+</head>
+<body>
+
+<div class="container" id="container">
+<div class="header" id="header">
+  <span class="smalltext">Version 2.1 1/4/2012</span><!-- php $version -->
+  <div class="header_links">
+  <ul>
+  <li><a href="" >Prefs</a></li>
+  <li><a href="" >My Account</a></li>
+  <li><a href="" >Utilities</a></li>
+  </ul>
+  </div> <!-- header_links -->
+  <div class="clearboth"></div>
+  <div class="header_info"><span>Site: Weavers</span><span style="padding-left:5ex;">Local Time: 10:32pm 2011/11/23</span></div><!-- php $site $site_time -->
+  <h1>My Mimo<span style="padding-left:5em;">Toolbox</span></h1> <!-- php $page_heading -->
+  <div id="headerhr"></div>
+</div> <!-- header -->
+<div class="clearboth"></div>
+
+
+<!-- fixed menu -->
+<div class="navhoriz" id="navhoriz">
+<a href="index.php?page=dashboard&id=0" ><div class="navitem nav_selected" title="Dashboard explanation" >Dashboard</div></a>
+<a href="index.php?page=share&id=0"     ><div class="navitem" title="Share explanation"     >Share</div></a>
+<a href="index.php?page=askmimo&id=0"   ><div class="navitem" title="Ask Mimo explanation"  >Ask Mimo</div></a>
+<a href="index.php?page=alerts&id=0"    ><div class="navitem" title="Alerts explanation"    >Alerts</div></a>
+<a href="index.php?page=toolbox&id=0"   ><div class="navitem" title="Toolbox explanation"   >Toolbox</div></a>
+</div> <!-- navhoriz -->
+
+<div class="clearboth"></div>
+<div class="main" id="main">
+
+<!-- CONTENT dashboard.php -->
+<!-- variable menu -->
+<div class="navigation" id="navigation">
+<a href=""><div class="menubtn">Set up a new monitor point</div></a>
+<a href=""><div class="menubtn">Check out a monitor</div></a>
+<a href=""><div class="menubtn">Look at profile</div></a>
+<a href=""><div class="menubtn">Look after time schedules</div></a>
+<a href=""><div class="menubtn">Manage alerts and thresholds</div></a>
+</div> <!-- navigation -->
+
+<div class="clearnone"></div>
+<div class="content" id="content">
+
+<div style="margin-top:9px;"></div>
+<div class="btndescription">Add a monitor node. If you have a new node with monitors you want to setup then start here.</div>
+<div class="btndescription">This allows you to edit any details for your nodes or monitors. Usually names, areas and reporting frequency.</div>
+<div class="btndescription">See how a profile looks. Profiles use the last 100 days to create a behaviour pattern. This helps iCare look for any changes of routine.</div>
+<div class="btndescription">Manage times of day and year to activate certain monitor points.</div>
+<div class="btndescription">Puts alerts against profiles or individual monitors to create SMS alerts to carers.</div>
+
+</div> <!-- content -->
+<!-- END CONTENT -->
+
+</div> <!-- main -->
+
+<div class="clearboth"></div>
+<div class="footer" id="footer">
+<p>Copyright &copy; Qvisual Ltd. 2012</p>
+</div> <!-- footer -->
+</div> <!-- container -->
+
+</body>
+</html>

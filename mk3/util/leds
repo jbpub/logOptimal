@@ -1,0 +1,225 @@
+#!/bin/bash
+# 							vi:  noai: noet: ts=4: sw=4: 
+#
+# Copyright (C) 2011, Spinifex Computing .
+#
+#  
+
+[ -z $BASH_VERSION ] && { echo "bash is required"; exit 1; }
+
+PRGNAME=${0##*/}
+PRGVER=0.1 
+
+LED_DIR="/sys/class/leds"
+
+LEDS=($(ls $LED_DIR|rev|sort|rev))
+
+usage() {
+
+cat << EOD
+
+Usage: $PRGNAME [options]
+
+
+  Options:
+EOD
+cat <<EOD | column -s\& -t
+
+    -l|--list & list the available LEDs
+    -s|--status <led> ... & show LED status
+      |--on <led> ... & turn on the LED
+      |--off <led> ... & turn off the LED
+    -b|--blink <led> ... & blink the LED
+      |--noblink <led> ... & stop the LED blinking
+    -p|--pulse <led> on off & 'on' and 'off' are millsecond times
+    -h|--help & show this output
+    -v|--verbose & show more output
+    -V|--version & show version information
+EOD
+
+cat << EOD
+
+  <led> can be either the name (e.g. plug:red:misc) or the
+        number returned by the --list option
+  e.g. 
+     # $PRGNAME -s 1 -s2
+     # $PRGNAME -s 1 2
+     # $PRGNAME --status plug:red:misc
+  
+  With  the exception of --pulse the word 'all' can be used to
+  invoke the action on all LEDs
+  e.g.
+    # $PRGNAME --blink all
+
+EOD
+echo ''
+} 
+
+if [ $# -le 0 ]; then
+	echo "insufficient parameters \"$@\"" >&2
+	echo "use: $PRGNAME -h" >&2
+	exit 1
+fi
+
+SHORTOPTS="-Vvhlb:p:s:"
+LONGOPTS="-help,version,verbose,list,on:,off:,blink:,noblink:,pulse:,status:,mmc:"
+
+ARGS=$(getopt -s bash --options "$SHORTOPTS"  \
+  --longoptions "$LONGOPTS" --name $PRGNAME -- "$@" )
+if [ $? != 0 ] ; then echo "" >&2 ; exit 1 ; fi
+
+
+VERBOSE=0
+
+get_led() {
+	local ldir=""
+	if [ -d  "${LED_DIR}/${1}" ]; then
+		ldir="${LED_DIR}/${1}"
+	elif [ -z "${1##[1-9]}" ]; then
+		if [ "$1" -gt 0 -a "$1" -le "${#LEDS[*]}" ]; then
+			ldir="${LED_DIR}/${LEDS[$(($1 - 1))]}"
+			[ -d  "${ldir}" ] || ldir=""
+		fi
+	fi
+	if [ ! -d  "${ldir}" -o ! -f "${ldir}/brightness" ]; then
+		echo "$PRGNAME: Invalid LED specified - $1 " >&2
+		exit 1
+	fi
+	echo $ldir
+}
+
+led_status() {
+
+	local ldir=$1
+	local n m
+	n="${ldir##*/}"
+	echo -n "$PRGNAME: $n"
+	for (( i=0; i<${#LEDS[*]}; ++i )); do
+		if [ "$n" = "${LEDS[i]}" ]; then
+			echo -n "  # $(( i+1 )) "
+			break;
+		fi
+	done
+	read n < ${ldir}/brightness 
+	if [ ! -z ${n##0} ]; then
+		echo -n " --on"
+	else
+		echo -n " --off"
+	fi
+	read n < ${ldir}/trigger
+	n=${n##*[}; n=${n%%]*}
+	#echo "$n" >&2
+	case $n in
+		heartbeat)
+			echo -n " --blink"
+			;;
+		timer)
+			read n < ${ldir}/delay_on
+			read m < ${ldir}/delay_off
+			echo -n " --pulse $n $m"
+			;;
+		*) 
+			;;
+	esac
+	echo ''
+}
+
+process_args () {
+
+# process the immediates
+for p in "$@" ; do
+    case "$p" in
+		-v|--verbose)
+			VERBOSE=1
+			;;
+		-l|--list)
+			[ "$VERBOSE" -eq 0 ] || echo "   Nbr Name"
+			for (( i=0; i<${#LEDS[*]}; ++i )); do
+				echo -e "    $(( i+1 ))  ${LEDS[$i]}"
+			done
+			exit 0
+			;;
+		-h|--help)
+	        usage
+    	    exit 0
+			;;
+		-V|--version)
+         	echo "$PRGNAME $PRGVER" >&2
+    	    exit 0
+         	;;
+    esac
+done
+
+local ldir v f
+while true ; do
+#	[ -z "$1" ] && break;
+    case "$1" in
+		-s|--status)
+			if [ all = ${2} ]; then
+				for (( i=0; i<${#LEDS[*]}; ++i )); do
+					led_status $(get_led $((i+1))) || exit 1
+				done
+			else
+				while [ ! -z ${2##-*} ]; do
+					ldir=$(get_led $2) || exit 1
+					led_status $ldir || exit 1
+					shift; 
+				done
+			fi
+			;;
+
+		-b|--blink|--noblink|--on|--off|--mmc) 
+
+			[[  "$1" =~ ^(-b|--b) ]] && { v='heartbeat'; f='trigger'; } 
+			[[  "$1" =~ ^--nob ]] && { v='none'; f='trigger'; } 
+			[[  "$1" =~ ^--on ]] && { v='1'; f='brightness'; } 
+			[[  "$1" =~ ^--off ]] && { v='0'; f='brightness'; } 
+			[[  "$1" =~ ^--mmc ]] && { v='mmc0'; f='trigger'; } 
+			if [ all = ${2} ]; then
+				for (( i=0; i<${#LEDS[*]}; ++i )); do
+					echo "$v" > ${LED_DIR}/${LEDS[$((i))]}/$f || exit 1
+				done
+				shift; 
+			else
+				while [ ! -z ${2##-*} ]; do
+					ldir=$(get_led $2) || exit 1
+					echo "$v" > ${ldir}/$f || exit 1
+					shift; 
+				done
+			fi
+			;;
+		-p|--pulse) 
+			ldir=$(get_led $2) || exit 1
+			if [[ ! $3 =~ ^[0-9]+$ || ! $4 =~ ^[0-9]+$ ]]; then
+				echo "Invalid --pulse values" >&2
+				exit 1
+			fi
+			echo 'timer' > ${ldir}/trigger
+			echo "$3" > ${ldir}/delay_on
+			echo "$4" > ${ldir}/delay_off
+			shift 3;
+			;;
+
+        --) shift ; break ;;
+		-h|--help|-V|--version|-v|--verbose|-l|--list)
+			shift; ;;
+        *) echo "**Invalid parameter - ==$1=="  >&2; exit 1 ;;
+    esac
+	shift
+done
+
+if [ $# -gt 0 ]; then
+	echo "ERROR: unknown parameter(s) \"$@\"" >&2
+	echo "use: $PRGNAME -h" >&2
+	exit 1
+fi
+
+}
+
+
+eval set -- "$ARGS"
+process_args "$@"
+
+exit 0
+
+

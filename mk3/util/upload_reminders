@@ -1,0 +1,45 @@
+#! /usr/bin/php -f
+<?php
+
+include '/var/www/mk3/include/db.inc';
+$dates =  db_fetch(db_query(
+	"SELECT 
+		DATE_FORMAT(CURDATE(), '%W, %M %D, %Y'), 
+		DATE_FORMAT(CURDATE(), '%M'), 
+		DATE_FORMAT(CURDATE(), '%D, %Y'), 
+		DATE_FORMAT(CURDATE(), '%W'), 
+		DAYOFWEEK(CURDATE());" 
+			),DB_NUM);
+
+$local_date_str =  $dates[0];
+$local_mthname  =  $dates[1];
+$local_dy       =  $dates[2];
+$local_dayname  =  $dates[3];
+$local_weekday  =  $dates[4];
+
+
+
+$rows = array();
+$qry="select id,  LOWER(DATE_FORMAT(rmndr_time,'%l:%i%p')) as time, rmndr_desc as txt from reminder_weekly where weekday = DAYOFWEEK(CURDATE()) order by rmndr_time;";
+$res=db_query($qry);
+if ($res) while($row   = db_fetch($res)) {
+	$rows[$row['time']] = $row['txt'];
+}
+$qry="select LOWER(DATE_FORMAT(rmndr_time,'%l:%i%p')) as time, rmndr_desc as txt from reminder where rmndr_date = CURDATE() order by rmndr_time;";
+$res=db_query($qry);
+$i = 0;
+if ($res) while($row   = db_fetch($res)) {
+	$rows[$row['time']] = $row['txt'];
+}
+ksort($rows);
+$data=array( 'dates' => $dates , 'rows' => $rows);
+#print_r($data);
+$cdata=base64_encode(serialize($data));
+$tmpfname = tempnam("/tmp", "");
+$fp = @fopen($tmpfname, "w");
+fwrite($fp, $cdata);
+fclose($fp);
+system('rsync -a '.$tmpfname.' mimo::data/reminders/reminders.b64',$ret);
+unlink($tmpfname);
+//echo "\nreturn code".$ret."\n";
+

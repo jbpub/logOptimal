@@ -1,0 +1,22 @@
+#! /bin/bash
+
+MLANADDR=$(. rdif)
+MLANPFX=${MLANADDR%.*}
+MLANSFX=${MLANADDR##*.}
+# set the mimo address to always one less that thishost
+MIMOSFX=$(( ${MLANSFX} - 1 ))
+HOSTNM=$(cat /etc/hostname)
+TUNIP=$(./showip |grep tun0| cut -d ' ' -f2 |cut -d '/' -f1)
+cat > /etc/hosts << EOD
+127.0.0.1 localhost
+127.0.0.1 $HOSTNM.localdomain $HOSTNM
+10.8.0.1 qv
+$MLANPFX.$MIMOSFX mimo.wifi mimo
+$MLANPFX.138 camera.wifi camera cam 
+EOD
+if [ "x$TUNIP" != "x" ]; then
+echo "$TUNIP $HOSTNM.tunnel" >>/etc/hosts
+fi
+if [ "x$MLANADDR" != "x" ]; then
+echo "$MLANADDR	$HOSTNM.wifi" >> /etc/hosts
+fi

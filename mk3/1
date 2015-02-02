@@ -1,0 +1,180 @@
+reading config file /etc/logrotate.conf
+including /etc/logrotate.d
+reading config file apt
+reading config file aptitude
+reading config file dpkg
+reading config file lighttpd
+reading config file mysql-server
+reading config file qvmanager
+error: qvmanager:6 unknown option 'hourly' -- ignoring line
+reading config file rsyslog
+
+Handling 12 logs
+
+rotating pattern: /var/log/apt/term.log  monthly (12 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/apt/term.log
+  log does not need rotating
+
+rotating pattern: /var/log/apt/history.log  monthly (12 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/apt/history.log
+  log does not need rotating
+
+rotating pattern: /var/log/aptitude  monthly (6 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/aptitude
+  log /var/log/aptitude does not exist -- skipping
+
+rotating pattern: /var/log/dpkg.log  monthly (12 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/dpkg.log
+  log does not need rotating
+
+rotating pattern: /var/log/alternatives.log  monthly (12 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/alternatives.log
+  log does not need rotating
+
+rotating pattern: /var/log/lighttpd/*.log  weekly (12 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/lighttpd/breakage.log
+  log does not need rotating
+considering log /var/log/lighttpd/error.log
+  log does not need rotating
+not running postrotate script, since no logs were rotated
+
+rotating pattern: /var/log/mysql.log /var/log/mysql/mysql.log /var/log/mysql/mysql-slow.log  after 1 days (7 rotations)
+empty log files are rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/mysql.log
+  log needs rotating
+considering log /var/log/mysql/mysql.log
+  log /var/log/mysql/mysql.log does not exist -- skipping
+considering log /var/log/mysql/mysql-slow.log
+  log /var/log/mysql/mysql-slow.log does not exist -- skipping
+rotating log /var/log/mysql.log, log->rotateCount is 7
+dateext suffix '-20120712'
+glob pattern '-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+renaming /var/log/mysql.log.7.gz to /var/log/mysql.log.8.gz (rotatecount 7, logstart 1, i 7), 
+renaming /var/log/mysql.log.6.gz to /var/log/mysql.log.7.gz (rotatecount 7, logstart 1, i 6), 
+renaming /var/log/mysql.log.5.gz to /var/log/mysql.log.6.gz (rotatecount 7, logstart 1, i 5), 
+renaming /var/log/mysql.log.4.gz to /var/log/mysql.log.5.gz (rotatecount 7, logstart 1, i 4), 
+renaming /var/log/mysql.log.3.gz to /var/log/mysql.log.4.gz (rotatecount 7, logstart 1, i 3), 
+renaming /var/log/mysql.log.2.gz to /var/log/mysql.log.3.gz (rotatecount 7, logstart 1, i 2), 
+renaming /var/log/mysql.log.1.gz to /var/log/mysql.log.2.gz (rotatecount 7, logstart 1, i 1), 
+renaming /var/log/mysql.log.0.gz to /var/log/mysql.log.1.gz (rotatecount 7, logstart 1, i 0), 
+renaming /var/log/mysql.log to /var/log/mysql.log.1
+creating new /var/log/mysql.log mode = 0640 uid = 102 gid = 4
+running postrotate script
+running script (multiple) with arg /var/log/mysql.log /var/log/mysql/mysql.log /var/log/mysql/mysql-slow.log : "
+		test -x /usr/bin/mysqladmin || exit 0
+		# If this fails, check debian.conf! 
+		MYADMIN="/usr/bin/mysqladmin --defaults-file=/etc/mysql/debian.cnf"
+		if [ -z "`$MYADMIN ping 2>/dev/null`" ]; then
+		  # Really no mysqld or rather a missing debian-sys-maint user?
+		  # If this occurs and is not a error please report a bug.
+		  #if ps cax | grep -q mysqld; then
+		  if killall -q -s0 -umysql mysqld; then
+ 		    exit 1
+		  fi 
+		else
+		  $MYADMIN flush-logs
+		fi
+"
+compressing log with: /bin/gzip
+removing old log /var/log/mysql.log.8.gz
+error: error opening /var/log/mysql.log.8.gz: No such file or directory
+
+rotating pattern: /etc/gopher/qvmanager.log  weekly (4 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /etc/gopher/qvmanager.log
+  log needs rotating
+rotating log /etc/gopher/qvmanager.log, log->rotateCount is 4
+dateext suffix '-20120712'
+glob pattern '-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+compressing log with: /bin/gzip
+renaming /etc/gopher/qvmanager.log.4.gz to /etc/gopher/qvmanager.log.5.gz (rotatecount 4, logstart 1, i 4), 
+renaming /etc/gopher/qvmanager.log.3.gz to /etc/gopher/qvmanager.log.4.gz (rotatecount 4, logstart 1, i 3), 
+renaming /etc/gopher/qvmanager.log.2.gz to /etc/gopher/qvmanager.log.3.gz (rotatecount 4, logstart 1, i 2), 
+renaming /etc/gopher/qvmanager.log.1.gz to /etc/gopher/qvmanager.log.2.gz (rotatecount 4, logstart 1, i 1), 
+renaming /etc/gopher/qvmanager.log.0.gz to /etc/gopher/qvmanager.log.1.gz (rotatecount 4, logstart 1, i 0), 
+renaming /etc/gopher/qvmanager.log to /etc/gopher/qvmanager.log.1
+removing old log /etc/gopher/qvmanager.log.5.gz
+error: error opening /etc/gopher/qvmanager.log.5.gz: No such file or directory
+
+rotating pattern: /var/log/syslog
+ after 1 days (7 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/syslog
+  log needs rotating
+rotating log /var/log/syslog, log->rotateCount is 7
+dateext suffix '-20120712'
+glob pattern '-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+compressing log with: /bin/gzip
+renaming /var/log/syslog.7.gz to /var/log/syslog.8.gz (rotatecount 7, logstart 1, i 7), 
+renaming /var/log/syslog.6.gz to /var/log/syslog.7.gz (rotatecount 7, logstart 1, i 6), 
+renaming /var/log/syslog.5.gz to /var/log/syslog.6.gz (rotatecount 7, logstart 1, i 5), 
+renaming /var/log/syslog.4.gz to /var/log/syslog.5.gz (rotatecount 7, logstart 1, i 4), 
+renaming /var/log/syslog.3.gz to /var/log/syslog.4.gz (rotatecount 7, logstart 1, i 3), 
+renaming /var/log/syslog.2.gz to /var/log/syslog.3.gz (rotatecount 7, logstart 1, i 2), 
+renaming /var/log/syslog.1.gz to /var/log/syslog.2.gz (rotatecount 7, logstart 1, i 1), 
+renaming /var/log/syslog.0.gz to /var/log/syslog.1.gz (rotatecount 7, logstart 1, i 0), 
+renaming /var/log/syslog to /var/log/syslog.1
+creating new /var/log/syslog mode = 0640 uid = 0 gid = 4
+running postrotate script
+running script (multiple) with arg /var/log/syslog
+: "
+		invoke-rc.d rsyslog rotate > /dev/null
+"
+removing old log /var/log/syslog.8.gz
+error: error opening /var/log/syslog.8.gz: No such file or directory
+
+rotating pattern: /var/log/mail.info
+/var/log/mail.warn
+/var/log/mail.err
+/var/log/mail.log
+/var/log/daemon.log
+/var/log/kern.log
+/var/log/auth.log
+/var/log/user.log
+/var/log/lpr.log
+/var/log/cron.log
+/var/log/debug
+/var/log/messages
+ weekly (1 rotations)
+empty log files are not rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/mail.info
+  log does not need rotating
+considering log /var/log/mail.warn
+  log does not need rotating
+considering log /var/log/mail.err
+  log does not need rotating
+considering log /var/log/mail.log
+  log does not need rotating
+considering log /var/log/daemon.log
+  log does not need rotating
+considering log /var/log/kern.log
+  log does not need rotating
+considering log /var/log/auth.log
+  log does not need rotating
+considering log /var/log/user.log
+  log does not need rotating
+considering log /var/log/lpr.log
+  log does not need rotating
+considering log /var/log/cron.log
+  log /var/log/cron.log does not exist -- skipping
+considering log /var/log/debug
+  log does not need rotating
+considering log /var/log/messages
+  log does not need rotating
+not running postrotate script, since no logs were rotated
+
+rotating pattern: /var/log/wtmp  monthly (1 rotations)
+empty log files are rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/wtmp
+  log does not need rotating
+
+rotating pattern: /var/log/btmp  monthly (1 rotations)
+empty log files are rotated, log files >= 0 are rotated earlier, old logs are removed
+considering log /var/log/btmp
+  log does not need rotating

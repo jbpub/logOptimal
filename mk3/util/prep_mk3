@@ -1,0 +1,290 @@
+#! /bin/bash
+
+apt-get install -y libjpeg-progs netpbm gifsicle rsync sudo iw wireless-tools wpasupplicant php5-gd
+[ -d /var/www/mk3/photos ]  || mkdir -p /var/www/mk3/photos
+
+chown -R www-data:www-data /var/www/mk3/photos
+chmod 0755 /var/www/mk3/photos
+
+cat << EOD
+You need to copy everything else under mk3
+ e.g.
+
+./index.php
+./async.php
+./logout.php
+./style.css
+./images
+./include
+./scripts
+./util
+./ajax
+
+
+rsync -ax 
+  OR
+cp -ax
+
+The /etc/hosts file must be updated to contain the IP address of
+the mimo machine. Scripts copy files to mimo, not an IP.
+
+The wifi setup will change on a case by case basis due to different
+DP hardware.
+
+EOD
+
+cd /var/www/mk3/util
+install -vp -m 0755 make_tb upload_messages upload_reminders sync_dp2s /usr/local/bin
+cp -dpfv showip /usr/local/bin
+cp -dpv sudoers /etc
+cp -dpv lighttpd.conf /etc/lighttpd/lighttpd.conf
+
+# set cgi.fix_pathinfo
+sed -ie '/^\;\?cgi\.fix_pathinfo\=/ s/^\;\?cgi\.fix_pathinfo\=.*/cgi.fix_pathinfo=1/g' /etc/php5/cgi/php.ini
+#update the session max timeout (see cron.d)
+sed -ie 's/^\(session.gc_maxlifetime\s* =\s*\).\+/\17200/' /etc/php5/cgi/php.ini
+#disable cron logging unless we have an error
+grep -qn '^EXTRA_OPTS' /etc/default/cron || sed -ie '$ iEXTRA_OPTS="-L 0"' /etc/default/cron
+
+# cron task for mimo uploads
+cat > /etc/cron.d/mimo << 'EOD'
+# m h dom mon dow user  command
+*/10 * *    *   *  root   cd / && /bin/bash /usr/local/bin/mimo_upload &> /dev/null
+
+EOD
+chmod 0755 /etc/cron.d/mimo
+chown 0:0 /etc/cron.d/mimo
+
+#qvmanager startup
+cp -dpfv qvmanager /etc/init.d/qvmanager
+insserv -d sitecontrol.sh ||true
+rm /etc/init.d/sitecontrol.sh || true
+insserv -v qvmanager
+
+# setup the hosts file
+. ./sethosts
+
+#####################################
+#       LOGS
+#####################################
+
+#all logs
+cat > /etc/logrotate.conf << EOD
+# see "man logrotate" for details
+# rotate log files weekly
+weekly
+
+# keep 4 weeks worth of backlogs
+rotate 4
+
+# create new (empty) log files after rotating old ones
+create
+
+maxsize 2000k
+
+# uncomment this if you want your log files compressed
+#compress
+
+# packages drop log rotation information into this directory
+include /etc/logrotate.d
+
+# no packages own wtmp, or btmp -- we'll rotate them here
+/var/log/wtmp {
+    missingok
+    monthly
+    create 0664 root utmp
+    rotate 1
+}
+
+/var/log/btmp {
+    missingok
+    monthly
+    create 0660 root utmp
+    rotate 1
+}
+
+# system-specific logs may be configured here
+EOD
+
+#qvmanager logs
+cat > /etc/logrotate.d/qvmanager << EOD
+# create new (empty) log files after rotating old ones
+# create
+
+# system-specific logs may be configured here
+/etc/gopher/qvmanager.log {
+	daily
+	maxsize 1000k
+	rotate 3
+	missingok
+	notifempty
+	compress
+	delaycompress
+	nocreate
+}
+
+EOD
+
+#rsyslog logs
+cat > /etc/logrotate.d/rsyslog << 'EOD'
+/var/log/syslog
+{
+	rotate 7
+	daily
+	missingok
+	notifempty
+	delaycompress
+	compress
+	postrotate
+		invoke-rc.d rsyslog rotate > /dev/null
+	endscript
+}
+
+/var/log/mail.info
+/var/log/mail.warn
+/var/log/mail.err
+/var/log/mail.log
+/var/log/daemon.log
+/var/log/kern.log
+/var/log/auth.log
+/var/log/user.log
+/var/log/lpr.log
+/var/log/cron.log
+/var/log/debug
+/var/log/messages
+{
+	rotate 1
+	weekly
+	missingok
+	notifempty
+	compress
+	delaycompress
+	sharedscripts
+	postrotate
+		invoke-rc.d rsyslog rotate > /dev/null
+	endscript
+}
+EOD
+#rsyslog logs
+cat > /etc/rsyslog.conf << 'EOD'
+#  /etc/rsyslog.conf	Configuration file for rsyslog.
+#
+#			For more information see
+#			/usr/share/doc/rsyslog-doc/html/rsyslog_conf.html
+
+
+#################
+#### MODULES ####
+#################
+
+$ModLoad imuxsock # provides support for local system logging
+$ModLoad imklog   # provides kernel logging support
+#$ModLoad immark  # provides --MARK-- message capability
+
+# provides UDP syslog reception
+#$ModLoad imudp
+#$UDPServerRun 514
+
+# provides TCP syslog reception
+#$ModLoad imtcp
+#$InputTCPServerRun 514
+
+
+###########################
+#### GLOBAL DIRECTIVES ####
+###########################
+
+#
+# Use traditional timestamp format.
+# To enable high precision timestamps, comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+#
+# Set the default permissions for all log files.
+#
+$FileOwner root
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+
+#
+# Where to place spool and state files
+#
+$WorkDirectory /var/spool/rsyslog
+
+#
+# Include all config files in /etc/rsyslog.d/
+#
+$IncludeConfig /etc/rsyslog.d/*.conf
+
+
+###############
+#### RULES ####
+###############
+
+#
+# First some standard log files.  Log by facility.
+#
+auth,authpriv.*			/var/log/auth.log
+*.*;auth,authpriv.none		-/var/log/syslog
+cron.*				~
+daemon.*			-/var/log/daemon.log
+kern.*				-/var/log/kern.log
+lpr.*				~
+mail.*				~
+news.*				~
+user.*				-/var/log/user.log
+
+#
+# Logging for the mail system.  Split it up so that
+# it is easy to write scripts to parse these files.
+#
+#mail.info			-/var/log/mail.info
+#mail.warn			-/var/log/mail.warn
+#mail.err			/var/log/mail.err
+
+#
+# Logging for INN news system.
+#
+#news.crit			/var/log/news/news.crit
+#news.err			/var/log/news/news.err
+#news.notice			-/var/log/news/news.notice
+
+#
+# Some "catch-all" log files.
+#
+*.=debug;\
+	auth,authpriv.none	-/var/log/debug
+*.=info;*.=notice;*.=warn;\
+	auth,authpriv.none;\
+	daemon.none		-/var/log/messages
+
+#
+# Emergencies are sent to everybody logged in.
+#
+*.emerg				:omusrmsg:*
+
+#
+# I like to have messages displayed on the console, but only on a virtual
+# console I usually leave idle.
+#
+#daemon,mail.*;\
+#	news.=crit;news.=err;news.=notice;\
+#	*.=debug;*.=info;\
+#	*.=notice;*.=warn	/dev/tty8
+
+# The named pipe /dev/xconsole is for the `xconsole' utility.  To use it,
+# you must invoke `xconsole' with the `-file' option:
+# 
+#    $ xconsole -file /dev/xconsole [...]
+#
+# NOTE: adjust the list below, or you'll go crazy if you have a reasonably
+#      busy site..
+#
+daemon.*;mail.*;\
+	*.=debug;*.=info;\
+	*.=notice;*.=warn	|/dev/xconsole
+
+EOD

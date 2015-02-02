@@ -1,0 +1,16 @@
+#! /bin/bash
+# display our IP addresses and our external ip
+rd () 
+{
+	while  read a;	do
+		if [ "${a#*1 received}" != "$a" ]; then
+			echo "$1 alive";
+			return 0;
+		fi
+	done
+}
+
+for (( i=1; i < 254; i++ )); do  
+	ping -c1 -w1   10.8.0.$i |rd $i
+done
+

@@ -1,0 +1,15 @@
+#! /bin/bash
+PRG=${0##*/}
+
+/usr/bin/php -f /usr/local/bin/upload_messages
+/usr/bin/php -f /usr/local/bin/upload_reminders
+
+
+MIN=$(( $(date +%-M) ))
+HOUR=$(( $(date +%-H) ))
+#[ "$HOUR" -ne 14 ] && exit 0
+[ "$MIN"  -gt 1 ] && exit 0
+
+rsync -ax /var/www/mk3/photos/ mimo::photos/
+
+exit 0

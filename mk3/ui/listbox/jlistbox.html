@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head profile="http://gmpg.org/xfn/11">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<title>jListbox</title>
+	<link rel="stylesheet" href="css/jquery.jListbox.css" type="text/css" media="screen" />
+	<script type="text/javascript" src="js/jquery.js" ></script>
+	<script type="text/javascript" src="js/jquery.bgiframe.js" ></script>
+	<script type="text/javascript" src="js/jquery.jListbox.js" ></script>
+	<script type="text/javascript">
+		$().ready(function() {
+			$("#lang, #test").jListbox();
+			
+			$("#showcode1").click(function() { $("#code1").toggle(); });
+			$("#showcode2").click(function() { $("#code2").toggle(); });
+			$("#showcode3").click(function() { $("#code3").toggle(); });
+			$("#showcode4").click(function() { $("#code4").toggle(); });
+		});
+	</script>
+</head>
+<body>
+
+
+
+<h1>jListbox demo</h2>
+
+<h2>jListbox: a formattable listbox</h2>
+<h3>Listbox with images</h2>
+	
+<select id='lang' name="lang" onChange="alert(this.options[this.selectedIndex].value);">
+	<option value="Italiano" rel="<img src='img/ita.gif' />" selected > Italiano</option>
+	<optgroup label="heyhey" >
+	<option value="English" rel="<img src='img/eng.gif' align=right hspace=30 />" > English</option>
+	</optgroup>
+	<option value="Fran&ccedil;ais" rel="<img src='img/fra.gif' />" > Fran&ccedil;ais</option>
+	<option value="Deutch" rel="<img src='img/deu.gif' align=right hspace=30 />" > Deutch</option>
+</select>
+
+<p>This is the HTML code of the listbox with images (and an onChange event) <span class='showhidden' id='showcode1'>( Show / hidden code )</span></p>
+<pre id='code1' class='prehidden' >
+&lt;select id='lang' name="lang" onChange="alert(this.options[this.selectedIndex].value);" &gt;
+	&lt;option value="Italiano" rel="&lt;img src='img/ita.gif' /&gt;" selected &gt; Italiano&lt;/option&gt;
+	&lt;option value="English" rel="&lt;img src='img/eng.gif' align=right hspace=30 /&gt;" &gt; English&lt;/option&gt;
+	&lt;option value="Fran&ccedil;ais" rel="&lt;img src='img/fra.gif' /&gt;" &gt; Fran&ccedil;ais&lt;/option&gt;
+	&lt;option value="Deutch" rel="&lt;img src='img/deu.gif' align=right hspace=30 /&gt;" &gt; Deutch&lt;/option&gt;
+&lt;/select&gt;
+</pre>
+
+<p>This is the javascript code of the listbox with images  <span class='showhidden' id='showcode2'>( Show / hidden code )</span></p>
+<pre id='code2' class='prehidden' >
+$().ready(function() {
+	$("#lang").jListbox();
+});
+</pre>
+
+<h3>The same listbox above without jListbox</h2>
+
+<select id='nolang' name="nolang" class="SELECT"  size="1"  >
+	<option value="Italiano" rel="<img src='../img/ita.gif' />" selected > Italiano</option>
+	<option value="English" rel="<img src='../img/eng.gif' />" > English</option>
+	<option value="Fran&ccedil;ais" rel="<img src='../img/fra.gif' />" > Fran&ccedil;ais</option>
+</select>
+
+<h3>Listbox with formatted html</h3>
+
+<select id="test" name='various' >
+	<option value="1" rel="<font color=red>Red test</font>"> + normal option</option>
+	<option value="2" rel="<b>Bold test</b>"> + normal option</option>
+	<option value="3" rel="<i>Italic test</i>"> + normal option</option>
+	<option value="4" rel="Various <b>bold</b> <i>italic</i> <u>underline</u>"></option>
+	<option value="5" rel="<font color=green>Green test</font>"> + normal option</option>
+	<option value="6" rel="<small>Small test</small>"> + normal option</option>
+</select>
+
+<p>This is the HTML code of the listbox with formatted html <span class='showhidden' id='showcode3'>( Show / hidden code )</span></p>
+<pre id='code3' class='prehidden' >
+&lt;select id="test" name='various' &gt;
+	&lt;option value="1" rel="&lt;font color=red&gt;Red test&lt;/font&gt;"&gt; + normal option&lt;/option&gt;
+	&lt;option value="2" rel="&lt;b&gt;Bold test&lt;/b&gt;"&gt; + normal option&lt;/option&gt;
+	&lt;option value="3" rel="&lt;i&gt;Italic test&lt;/i&gt;"&gt; + normal option&lt;/option&gt;
+	&lt;option value="4" rel="Various &lt;b&gt;bold&lt;/b&gt; &lt;i&gt;italic&lt;/i&gt; &lt;u&gt;underline&lt;/u&gt;"&gt;&lt;/option&gt;
+	&lt;option value="5" rel="&lt;font color=green&gt;Green test&lt;/font&gt;"&gt; + normal option&lt;/option&gt;
+	&lt;option value="6" rel="&lt;small&gt;Small test&lt;/small&gt;"&gt; + normal option&lt;/option&gt;
+&lt;/select&gt;
+</pre>
+
+<p>This is the javascript code of the listbox with formatted html <span class='showhidden' id='showcode4'>( Show / hidden code )</span></p>
+<pre id='code4' class='prehidden' >
+$().ready(function() {
+	$("#test").jListbox();
+});
+</pre>
+
+<a href="http://www.senamion.com">Senamion.com</a> &amp;&amp; <a href="http://www.senamion.it">Senamion.it</a>
+
+</body>
+</html>

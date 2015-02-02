@@ -1,0 +1,24 @@
+#! /bin/bash
+# display the mlan0 address
+rd () 
+{
+	local a b c d found 
+	while  read a b c d;	do
+		[ -z "${a%%#*}" ] && continue; #skip comments
+		if [ "${a}" = "iface" ]; then
+			if [ "${b}" = "mlan0" ]; then
+				found=1
+				continue
+			else
+				[ "$found" = "1" ] && return;
+			fi
+		fi
+		if [ "$found" = "1" -a "$a" = "address" ]; then
+			echo "$b";
+			return;
+		fi
+	done
+}
+
+rd < /etc/network/interfaces
+

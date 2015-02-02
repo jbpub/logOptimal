@@ -1,0 +1,24 @@
+/* vim: set ai sw=4 ts=4: */
+/* from the jqueryui samples */
+
+<style>
+.ui-combobox {
+	position: relative;
+	display: inline-block;
+}
+.ui-button {
+	position: absolute;
+	position: relative;
+	top: 0;
+	bottom: 0;
+	margin-left: -1px;
+	padding: 0;
+	 /* adjust styles for IE 6/7 */
+	height: 1.7em;
+	top: 0.4em;
+}
+.ui-autocomplete-input {
+	margin: 0;
+	padding: 0.3em;
+}
+</style>

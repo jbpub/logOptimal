@@ -1,0 +1,18 @@
+#! /bin/bash
+# display our IP addresses and our external ip
+rd () 
+{
+	while  read a b l;	do
+		if [ "$a" = "inet" ]; then
+			c=${l##* };
+			[ "$c" = "lo" ] || echo "$c: $b";
+		fi
+	done
+}
+
+ip addr show |rd
+
+a=$(wget -q -O /dev/stdout http://checkip.dyndns.org/)
+# or a=$(wget -q -O >(cat) http://checkip.dyndns.org/)
+a=${a##* };a=${a%%<*}
+echo "external IP: $a"

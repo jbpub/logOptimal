@@ -1,0 +1,21 @@
+#! /bin/bash
+
+# add the schedules required for qvmanager so something works
+
+
+mysql -u root -pc0untess -D qvantage << EOD
+INSERT INTO schedule ( site_id, name ) select id, 'default' from sites limit 1;
+
+INSERT INTO schedule_area (schedule_id, area_id) select s.id, a.id from areas a, schedule s;
+
+INSERT INTO schedule_point (  schedule_id, point_id) select s.id, p.id from schedule s, site_node_points p;
+#  set_state INT(3) NOT NULL DEFAULT -1,  ??
+
+INSERT INTO schedule_day ( schedule_id, scheduled_day, from_hh,	from_mm, to_hh, to_mm,  create_date) select id, 1, 0,0,0,0,NOW() from schedule;
+INSERT INTO schedule_day ( schedule_id, scheduled_day, from_hh,	from_mm, to_hh, to_mm,  create_date) select id, 2, 0,0,0,0,NOW() from schedule;
+INSERT INTO schedule_day ( schedule_id, scheduled_day, from_hh,	from_mm, to_hh, to_mm,  create_date) select id, 3, 0,0,0,0,NOW() from schedule;
+INSERT INTO schedule_day ( schedule_id, scheduled_day, from_hh,	from_mm, to_hh, to_mm,  create_date) select id, 4, 0,0,0,0,NOW() from schedule;
+INSERT INTO schedule_day ( schedule_id, scheduled_day, from_hh,	from_mm, to_hh, to_mm,  create_date) select id, 5, 0,0,0,0,NOW() from schedule;
+INSERT INTO schedule_day ( schedule_id, scheduled_day, from_hh,	from_mm, to_hh, to_mm,  create_date) select id, 6, 0,0,0,0,NOW() from schedule;
+INSERT INTO schedule_day ( schedule_id, scheduled_day, from_hh,	from_mm, to_hh, to_mm,  create_date) select id, 7, 0,0,0,0,NOW() from schedule;
+EOD

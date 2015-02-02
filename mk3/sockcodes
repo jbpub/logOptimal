@@ -1,0 +1,8 @@
+#! /usr/bin/php
+<?php
+$a = get_defined_constants(TRUE) ;
+foreach ( $a['sockets'] as $constant => $value ) {
+    printf("%-25s %d\r\n", $constant, $value) ;
+}
+?>
+

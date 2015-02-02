@@ -1,0 +1,85 @@
+#! /bin/bash
+#
+#  script to generate thumbnails in the same directory
+#  prefixed with _TB_<extension>_<original file>
+# 
+# 
+
+# rename 'y/A-Z/a-z/' file
+
+PRGNAME=${0##*/}
+TBCMD='| pnmscale -xysize 80 60 | cjpeg -opti -progr -qual 75'
+JPGCMD='| pnmscale -xysize 800 600 | cjpeg -opti -progr -qual 75'
+if [ -r "/run/$PRGNAME.pid" ]; then
+  ps --pid $(cat /run/$PRGNAME.pid) &> /dev/null  && exit 1;
+fi
+echo "$$" > /run/$PRGNAME.pid
+#
+# generate_tb(file  [, overwrite_flag])
+#
+generate_tb()
+{
+	local f=$1
+	
+	local ext="${f##*.}" 
+	case "$ext" in
+	bmp|BMP|jpg|jpeg|JPG|JPEG|gif|GIF|png|PNG)  ;;
+	*) return 1; ;;
+	esac
+	#[ -z ${f%\**} ] && continue;
+	[ "${f#_TB_*}" = "$f" ] || return 1
+	local nf=$f
+	if [[ "$f" =~ [A-Z] ]]; then 
+		nf=$(echo "$f" | tr '[:upper:]' '[:lower:]')
+		[ -e  "$nf" ] && return 1; # lowercase version exists - ignore it
+		mv "$f" "$nf"
+	fi
+
+	local tb="_TB_${nf##*.}_${nf%.*}.jpg"
+	
+	[ -z "$2" ] && [ -e  "$tb" ] && return 1; # thumbnail exists - skip it
+
+	case "${nf##*.}" in
+	jpg|jpeg)
+		eval  djpeg "$nf"  "$TBCMD > $tb"
+		eval  "djpeg" "$nf"  "$JPGCMD > $nf.new"
+		eval "rm $nf"
+		eval "mv $nf.new $nf"
+		chown 33:33 $nf $tb
+		;;
+	bmp)
+		eval bmptoppm "$nf" 2>/dev/null "$TBCMD > $tb"
+		chown 33:33 $nf $tb
+		;;
+	gif)
+		gifsicle '#0' < "$nf" | eval giftopnm  "$TBCMD > $tb"
+		chown 33:33 $nf $tb
+		;;
+	png)
+		#eval  pngtopnm "$nf"  "$TBCMD > $tb"
+		#eval  pngtopnm -background '0.0,0.0,0.0' "$nf"  "$TBCMD > $tb"
+		eval  pngtopnm -background '1.0,1.0,1.0' "$nf"  "$TBCMD > $tb"
+		chown 33:33 $nf $tb
+		;;
+	esac
+	return 0;
+}
+
+umask 133
+if [[ -n "$1"  && -f "$1" ]]; then
+	[ -d "${1%/*}" ] && cd "${1%/*}"
+	generate_tb ${1##*/} "1"
+	rm /run/$PRGNAME.pid || true
+	exit 0
+fi
+
+#for f in $(ls *.{bmp,BMP,jpg,jpeg,JPG,JPEG,gif,GIF,png,PNG} 2>/dev/null); do
+#for f in  *.{bmp,BMP,jpg,jpeg,JPG,JPEG,gif,GIF,png,PNG}; do
+if [[ -z "$1"  || -d "$1" ]]; then
+
+	[ -d "$1" ] && cd "$1"
+	for f in  * ; do
+		generate_tb "$f" "$2" && echo "$f"
+	done 
+fi
+rm /run/$PRGNAME.pid || true

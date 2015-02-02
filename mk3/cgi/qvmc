@@ -1,0 +1,262 @@
+#! /usr/bin/php -f
+<?php
+/* vim: set ai sw=4 ts=4: */
+ error_reporting(E_ALL);
+ignore_user_abort(true); /* does a nohup (i think) */
+$cgi=0;
+
+$rn="\r\n";
+if (isset($_SERVER['PATH_INFO'])) {
+	$cmd = substr($_SERVER['PATH_INFO'],1);
+		echo ('content-type:  text/plain; charset=iso-8859-1'.$rn);
+		echo ('Pragma:  no-cache'.$rn);
+		echo('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0'.$rn);
+		echo ('Expires: Thu, 19 Nov 1981 08:52:00 GMT '.$rn.$rn);
+}
+else {
+
+	if (isset($argv)) {
+		$cmd=$argv[1];
+		for ($i=2; $i< $argc; $i++) {
+			$cmd .= ' '.$argv[$i];
+		}
+		$cgi=1;
+//		echo 'content-type: text/plain; charset=iso-8859-1'."\r\n";
+//		echo "\r\n";
+	}
+	else {
+		header('content-type:  text/plain; charset=iso-8859-1');
+		header_remove('X-Powered-By');
+		print_r($_SERVER);
+		print_r($_REQUEST);
+	}
+}
+
+$m = qvm_command($cmd);
+echo $m."\n";
+
+function sk_connect($address, $port)
+{
+
+  /* Create a TCP/IP socket. */
+	$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	if ($socket === false) {
+		die ("socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n");
+	}
+
+	if (!@socket_set_nonblock($socket)) {
+		die ("socket_set_nonblock() failed: reason: " . socket_strerror(socket_last_error()) . "\n");
+	}
+	//echo "Attempting to connect to '$address' on port '$service_port'...";
+	$result = @socket_connect($socket, $address, $port);
+	if (!$result) {
+		$err = socket_last_error($socket);
+		if ($err != SOCKET_EINPROGRESS) { // 115 10035) { //WOULDBLOCK
+			die ("socket_connect() failed.\nReason: ($err) " .
+				socket_strerror($err) . "\n");
+		}
+	}
+	// select on the socket and only allow it 10secs to complete
+	// any more means the server is not there
+    $r = NULL;
+    $w = array($socket);
+	$e = NULL;
+
+    $rc = @socket_select($r, $w,  $e,  10, 0);
+	//echo 'select on connect is '."$rc\n";
+    if ($rc > 0) {
+	//	echo 'select on connect is '."$rc\n";
+		return $socket;
+	}
+    elseif ($rc === 0) { /* timeout */
+		$err = socket_last_error($socket);
+		die ("socket_connect() timedout.\nReason: ($err) " .
+				socket_strerror($err) . "\n");
+		return false;
+    }
+    else { // < 0
+	    $err=socket_last_error($socket);
+	    //switch ($err) {
+	    //default:
+          die ("socket_select() failed.\nReason: ($result) " . socket_strerror($err) . "\n");
+          return false;
+	    //}
+    }
+
+  return $socket;
+}
+
+
+function sk_send( $socket, &$str)
+{
+	$len = strlen($str);
+	$rc=@socket_write($socket, $str, $len);
+	if ($rc === false) return false;
+	if ($rc === $len) {
+	  $str = '';
+	  return 0;
+	}
+	$str = substr($str, $rc, $len - $rc);
+	return $len - $rc;
+}
+
+function sk_recv( $socket, &$str)
+{
+	$len = 0;
+	while (true) {
+	  $s = '';
+      $rc=@socket_recv($socket,  $s, 4096, 0);
+      if ($rc === false) {
+	    $err=socket_last_error($socket);
+	    switch ($err) {
+	    case SOCKET_EINTR: //EINTR
+	       continue;
+	    case SOCKET_EWOULDBLOCK: //11
+	      return $len;
+	    case 0:     //read a zero byte
+          //echo ("socket_recv() read a zero byte\n");
+	      return $len;
+	    default:
+          //echo ("socket_recv() returned $err " . socket_strerror($err) . "\n");
+          return false;
+	    }
+      }
+	  if ($rc === 0) {
+          //echo ("socket_recv() read a zero byte\n");
+	    return 0;
+      }
+
+	  if ($rc > 0) {
+	    $len += $rc;
+	    $str .= $s;
+	  }
+	  if ($rc <  4096) {
+	    return $len;
+	  }
+	}
+	return 0;
+}
+
+
+
+function sk_select($socket, $timeout_secs)
+{
+  while (true) {
+    $r = array($socket);
+    $w = NULL;//array($socket);
+	$e = NULL;
+
+//echo "select ...".time()."\n";
+    $rc = @socket_select($r, $w,  $e,  $timeout_secs, 0);
+//echo "select is ".time()." $rc\n";	
+    if ($rc > 0) {
+	  $ret = 0;
+      if (in_array($socket, $r)) {
+	    $ret |= 1;
+      }
+/*	  
+      if (in_array($socket, $w)) {
+	    $ret |= 2;
+      }
+*/
+	  return $ret;
+	}
+    elseif ($rc === 0) { /* timeout */
+      return false;
+    }
+    else { // < 0
+	    $err=socket_last_error($socket);
+	    switch ($err) {
+	    case 10004: //EINTR
+	       continue;
+	    default:
+          die ("socket_select() failed.\nReason: ($err) " . socket_strerror($err) . "\n");
+          return false;
+	    }
+    }
+  }
+}
+
+
+/*
+****************************************************************************
+*/
+
+
+function qvm_command($cmd)
+{
+$socket = sk_connect('127.0.0.1', 3000);
+//echo "connect OK\n";
+
+$rf = '1';
+
+//byte 4 is the return flag, '1' to get a response
+//echo sprintf("sending 000%s003gui%05d%s\n", $rf,  strlen($cmd), $cmd);
+$out = sprintf("000%s003gui%05d%s\n",  $rf, strlen($cmd), $cmd);
+
+// we have checked for the socket is writable in the connect
+while (strlen($out > 0)) {
+	$rc = sk_send($socket, $out);
+	//echo "send returned $rc\n";
+	if ($rc===false) {
+	    $err=socket_last_error($socket);
+        die ("socket_send() failed.\nReason: ($err) " . socket_strerror($err) . "\n");
+		return 8;
+	}
+    $r = NULL;//array($socket);
+    $w = array($socket);
+	$e = NULL;
+
+//echo "send select ...".time()."\n";
+    $rc = @socket_select($r, $w,  $e,  20, 0);
+//echo "send select is ".time()." $rc\n";	
+    if ($rc < 0) {
+	    $err=socket_last_error($socket);
+        die ("socket_select() failed.\nReason: ($err) " . socket_strerror($err) . "\n");
+    }
+}
+$out = '';
+
+socket_shutdown($socket,1);
+//read initial data (if any) , this is needed toprime the select
+$m='';
+$rc=sk_recv($socket, $m);
+
+//echo "init recv returned $rc\n";
+if ($rc===0) {
+	$rc = sk_select($socket, 30);
+	//echo "select returned $rc\n";
+	$rc=sk_recv($socket, $m);
+	//echo "second recv returned $rc\n";
+}
+
+if ($rc && $rc >= 20) {
+	$clen=substr($m,0,8) + 0;
+	$ulen=substr($m,8,8) + 0;
+	$cflg=substr($m,16,1).'';
+	$code=substr($m,17,3).'';
+	//echo sprintf("clen=%d\nulen=%d\ncflg=%s\ncode=%s\n",$clen,$ulen,$cflg,$code);
+}
+else return 0;
+$rc -= 20;
+$m = substr($m,20);
+$count = strlen($m);
+#if ($count > 0) echo '('.strlen($m).')'.$m."\n";
+while ($count < $ulen ) {
+#	$m='';
+	$rc = sk_select($socket, 3);
+	if ($rc != 1) break;
+	$rc=sk_recv($socket, $m);
+	if ($rc > 0) {
+		#$count += strlen($m);
+		$count += $rc;
+	}
+}
+socket_close($socket);
+return $m;
+//echo '('.strlen($m).')'.$m."\n";
+//echo "Closing socket...";
+//echo "OK.\n\n";
+}
+
+?>

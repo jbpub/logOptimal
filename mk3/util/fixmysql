@@ -1,0 +1,3 @@
+#! /bin/bash
+mysqlcheck --debug-info --auto-repair -c qvantage -u root -pc0untess
+

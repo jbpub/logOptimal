@@ -1,0 +1,1 @@
+    inet 10.8.0.30 peer 10.8.0.29/32 scope global tun0

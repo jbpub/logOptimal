@@ -1,0 +1,9 @@
+#! /bin/sh
+# apt-get install curl lighttpd mariadb-client mariadb-server php5-cgi php5-cli php5-curl php5-json php5-mysql
+# use lighty-enable to enable mods
+# lighty-enable-mod cgi debian-doc dir-listing fastcgi fastcgi-php
+
+sed -i -r -e 's/^;(date.timezone \=)/\1 Australia\/Melbourne/' /etc/php5/cgi/php.ini
+sed -i -r -e 's/^;(date.timezone \=)/\1 Australia\/Melbourne/' /etc/php5/cli/php.ini
+
+

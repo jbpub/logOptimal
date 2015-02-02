@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# backup up the dp SD to server storage
+#
+
+set -u
+
+#SRC='/etc /var /root'
+SRC='/'
+
+DT=$(date +'%Y%m')
+NBR=$(( $(date +%m)%2  ))
+PRG=${0##*/}
+#OPTS="--ipv4 --bwlimit=1200 --exclude '/var/log' --exclude '/var/cache' --exclude /tmp --stats -h" 
+#OPTS="--ipv4 --stats -h" 
+OPTS="--ipv4" 
+#DST="10.8.0.1::ssbackup/$(hostname).$NBR"
+DST="10.8.0.1::ssbackup/$(hostname)"
+
+#if its a wednesday
+#[ $(date +%u) -eq 7 ] || exit 0
+
+# been run this month ?
+#[ "$DT" = "$(cat /var/local/${PRG} 2>/dev/null)" ] && exit 0
+#echo "$DT" >/var/local/${PRG}
+
+/usr/bin/logger -t $PRG -p syslog.info -- "automated inetwork backup initiated"
+
+excl () {
+echo /var/log
+echo /var/cache
+}
+# nicer IO
+[ -x /usr/bin/ionice ] && /usr/bin/ionice -c3 -p$$ > /dev/null 2>&1
+
+
+#/usr/bin/logger -t $PRG -p user.info -f <(/usr/bin/rsync -axz --delete $OPTS $SRC ${DST}/ 2>&1) #&> /dev/null
+#/usr/bin/logger -t $PRG -p user.info -f <(/usr/bin/rsync -axz --delete $OPTS --exclude-from $exl $SRC ${DST}/ 2>&1)
+
+nohup setsid /usr/bin/rsync -axz --delete $OPTS --exclude-from <(excl) $SRC ${DST}/ &>/dev/null &
+#/usr/bin/rsync -axz --delete $OPTS --exclude-from $exl $SRC ${DST}/ &> /dev/null 
+# setsid /usr/bin/rsync -axz --delete $OPTS --exclude-from $exl $SRC ${DST}/ 
+
+exit 0
