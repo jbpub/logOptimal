@@ -1,4 +1,5 @@
 ## log Optimal porfolio weight calculator
 
-proof of concept with havelock
-TODO: Yahoo api
+D. Luenberger, 1998 , _Investment Science_
+
+Rroof of concept with havelock.
