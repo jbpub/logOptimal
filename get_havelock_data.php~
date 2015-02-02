@@ -4,7 +4,7 @@
 //print_r ($argv);
 
 
-$key="XXXXXXXXXXXXXXXX";
+$key="axbQznyh5HLC2ZmpMMfNFVKxHBUchg2AVTRL8Gu4P76FWhvjvSx3n8qw9ARhgHh5";
 $url="https://www.havelockinvestments.com/api/index.php";
 $data_dir="./data/";
 
